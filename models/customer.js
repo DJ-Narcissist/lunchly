@@ -14,6 +14,9 @@ class Customer {
     this.notes = notes;
   }
 
+  fullName() {
+    return `${this.firstName} ${this.lastName}`;
+  }
   /** find all customers. */
 
   static async all() {
@@ -32,25 +35,11 @@ class Customer {
   /** get a customer by ID. */
 
   static async get(id) {
-    const results = await db.query(
-      `SELECT id, 
-         first_name AS "firstName",  
-         last_name AS "lastName", 
-         phone, 
-         notes 
-        FROM customers WHERE id = $1`,
-      [id]
-    );
-
-    const customer = results.rows[0];
-
-    if (customer === undefined) {
-      const err = new Error(`No such customer: ${id}`);
-      err.status = 404;
-      throw err;
+    const results = await db.query(`SELECT * FROM customers WHERE id = $1`,[id]);
+    if (results.rows.length ===0) {
+      throw new ExpressError(`No such customer: ${id}`, 404);
     }
-
-    return new Customer(customer);
+    return new Customer(results.rows[0]);
   }
 
   /** get all reservations for this customer. */
